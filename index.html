@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Minecraft UUID Converter</title>
-		<link rel="stylesheet" href="style.css?v=1">
-		<script defer src="convert.js?v=1"></script>
+		<link rel="stylesheet" href="style.css?v=2">
+		<script defer src="convert.js?v=2"></script>
 		<script>
 			if (!('setBigUint64' in DataView.prototype)) {
 				alert('This browser does not support writing and reading 64-bit integers, which is required by the converter. Try updating your browser.')
@@ -15,29 +15,33 @@
 		<div class="content">
 			<h1>Minecraft UUID Converter</h1>
 			<h2>- Supports 1.16 -</h2>
+			<div class="buttons">
+				<input type="button" value="Generate Random" id="gen-random">
+			</div>
 			<div class="row" data-view-id="hex">
 				<label>Hexadecimal:"
 					<input id="hex"
 						value="00000000-0000-0000-0000-000000000000"
+						placeholder="00000000-0000-0000-0000-000000000000"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						required pattern="\s*([0-9a-fA-F]{1,8}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,12}|[0-9a-fA-F]{1,32})\s*">"
 				</label>
 			</div>
-			<div class="row" data-view-id="halves" data-split-paste>
-				<label>UUIDLeast:
-					<input id="least"
+			<div class="row" data-view-id="halves">
+				<label>UUIDMost:
+					<input id="most"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						required pattern="\s*[-+]?\d+\s*">L,
 				</label>
-				<label>UUIDMost:
-					<input id="most"
+				<label>UUIDLeast:
+					<input id="least"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						required pattern="\s*[-+]?\d+\s*">L
 				</label>
 			</div>
-			<div class="row" data-view-id="array" data-split-paste>
+			<div class="row" data-view-id="array">
 				<label>UUID:[I;
 					<input id="array0"
 						value="0" inputmode="numeric"
