@@ -88,8 +88,8 @@ function generateRandomUUID() {
 	crypto.getRandomValues(uuidBytes);
 	// Set version to 4 (random)
 	uuidBytes[6] = (uuidBytes[6] & 0x0f) | (4 << 4);
-	// Set variant to 2 (RFC4122)
-	uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0xc0;
+	// Set variant to 1 (Leach–Salz)
+	uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80;
 	updateUUIDViews();
 }
 
