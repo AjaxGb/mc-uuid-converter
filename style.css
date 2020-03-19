@@ -5,7 +5,7 @@ html, body {
 	padding: 0;
 }
 
-* {
+body, input {
 	font-family: monospace;
 	font-size: 15px;
 }
