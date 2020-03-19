@@ -96,6 +96,11 @@ function generateRandomUUID() {
 function loadUUIDFromHash() {
 	const text = location.hash.substring(1);
 	if (!text) return;
+	
+	if (/rand/i.test(text)) {
+		generateRandomUUID();
+		return;
+	}
 
 	const textGroups = text.split(',');
 	for (const viewId in uuidViews) {
