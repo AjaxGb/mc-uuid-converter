@@ -1,5 +1,6 @@
 * {
 	box-sizing: border-box;
+	-webkit-text-size-adjust: none;
 }
 
 html, body {
@@ -21,10 +22,17 @@ body {
 
 .content {
 	margin: auto;
+	padding: 20px;
 	display: flex;
 	flex-flow: column;
 	align-items: center;
 	width: 40em;
+	max-width: 100%;
+}
+
+.content > * {
+	width: 100%;
+	text-align: center;
 }
 
 h1 {
@@ -37,24 +45,21 @@ h2 {
 	margin-top: 0;
 }
 
-.content > div {
-	margin: 10px;
-	width: 100%;
-}
-
-.buttons {
-	display: flex;
-	justify-content: center;
-	height: 25px;
-}
-
 .row {
+	margin: 10px;
 	display: flex;
-	align-items: stretch;
 	height: 25px;
 }
 
-.row label {
+.row.buttons {
+	justify-content: center;
+}
+
+.row.view {
+	align-items: stretch;
+}
+
+.row.view label {
 	display: inline-flex;
 	align-items: stretch;
 	flex-grow: 1;
@@ -62,11 +67,16 @@ h2 {
 	line-height: 25px;
 }
 
-.row label:first-child {
+.row.view label:first-child {
 	padding-left: 0;
 }
 
-.row input {
+.row.view .expandable {
+	display: inline-flex;
+	width: 100%;
+}
+
+.row.view input {
 	flex-grow: 1;
 	text-align: right;
 	width: 0;
@@ -78,16 +88,45 @@ input:invalid {
 }
 
 .info {
-	text-align: center;
-	margin-top: 10px;
+	margin: 10px;
 	font-family: sans-serif;
 	font-style: italic;
 	line-height: 1.5;
 	color: #5f5f5f;
 }
 
-code {
+.info code {
+	display: inline-block;
 	border: 1px solid #0006;
 	border-radius: 3px;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 	padding: 0 2px;
+}
+
+@media (max-width: 600px) {
+	.row.view {
+		flex-flow: column;
+		height: unset;
+	}
+	
+	.row.view label {
+		padding-left: 0;
+	}
+	
+	.row.view .column-mobile {
+		flex-flow: column;
+	}
+
+	.row.view .space-at-end-mobile::after {
+		content: "\00a0";
+	}
+	
+	.row.view input {
+		height: 25px;
+	}
+
+	.info code {
+		display: inline;
+	}
 }

@@ -121,14 +121,14 @@ function loadUUIDFromHash() {
 document.getElementById('gen-random').addEventListener('click', generateRandomUUID);
 
 document.addEventListener('input', e => {
-	const viewId = e.target.closest('.row').dataset.viewId;
+	const viewId = e.target.closest('.view').dataset.viewId;
 	if (viewId) {
 		updateUUIDViews(viewId);
 	}
 });
 
 document.addEventListener('paste', e => {
-	const viewId = e.target.closest('.row').dataset.viewId;
+	const viewId = e.target.closest('.view').dataset.viewId;
 	const view = uuidViews[viewId];
 	if (!view || !view.allowSplitPaste) return;
 	
