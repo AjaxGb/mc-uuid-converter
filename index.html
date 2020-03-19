@@ -4,8 +4,8 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 		<title>Minecraft UUID Converter</title>
-		<link rel="stylesheet" href="style.css?v=3">
-		<script defer src="convert.js?v=4"></script>
+		<link rel="stylesheet" href="style.css?v=4">
+		<script defer src="convert.js?v=5"></script>
 		<script>
 			if (!('setBigUint64' in DataView.prototype)) {
 				alert('This browser does not support writing and reading 64-bit integers, which is required by the converter. Try updating your browser.')
@@ -19,8 +19,9 @@
 			<div class="row buttons">
 				<input type="button" value="Generate Random" id="gen-random">
 			</div>
-			<div class="row view" data-view-id="hex">
-				<label class="column-mobile">Hexadecimal:<span class="expandable">"
+			<div class="row view column-mobile" data-view-id="hex">
+				<a href='javascript:;'class="copy-me">Copy</a>
+				<label>Hexadecimal:<span class="expandable">"
 					<input id="hex"
 						value="00000000-0000-0000-0000-000000000000"
 						placeholder="00000000-0000-0000-0000-000000000000"
@@ -29,6 +30,7 @@
 				</label></span>
 			</div>
 			<div class="row view" data-view-id="halves">
+				<a href='javascript:;'class="copy-me">Copy</a>
 				<label>UUIDMost:
 					<input id="most"
 						value="0" inputmode="numeric"
@@ -43,6 +45,7 @@
 				</label>
 			</div>
 			<div class="row view" data-view-id="array">
+				<a href='javascript:;'class="copy-me">Copy</a>
 				<label>UUID:[I;
 					<input id="array0"
 						value="0" inputmode="numeric"
@@ -79,5 +82,10 @@
 				</p>
 			</div>
 		</div>
+		<textarea id="copy-area" tabindex="-1" style="
+			position: fixed;
+			top: -999px;
+			height: 0;
+			"></textarea>
 	</body>
 </html>

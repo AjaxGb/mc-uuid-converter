@@ -32,6 +32,7 @@ const uuidViews = {
 			}
 			hex.value = groups.join('-');
 		},
+		getText: ([hex]) => `"${hex.value}"`,
 	},
 	halves: {
 		allowSplitPaste: true,
@@ -51,6 +52,7 @@ const uuidViews = {
 			most.value = uuid.getBigInt64(0, false);
 			least.value = uuid.getBigInt64(8, false);
 		},
+		getText: ([most, least]) => `Most:${most.value}L,Least:${least.value}L`,
 	},
 	array: {
 		allowSplitPaste: true,
@@ -68,18 +70,28 @@ const uuidViews = {
 				array[i].value = uuid.getInt32(i * 4, false);
 			}
 		},
+		getText: array => `[I;${array.map(e => e.value).join(',')}]`,
 	},
 };
+
+function findElementUUIDViewId(el) {
+	const viewEl = el.closest('.view');
+	if (viewEl) return viewEl.dataset.viewId;
+	return '';
+}
+
+function callUUIDViewEvent(view, event) {
+	return view[event](view.inputs, view.constants || {});
+}
 
 function updateUUIDViews(changedViewId) {
 	const changedView = uuidViews[changedViewId];
 	if (changedView) {
-		changedView.parse(changedView.inputs, changedView.constants || {});
+		callUUIDViewEvent(changedView, 'parse');
 	}
 	for (const viewId in uuidViews) {
 		if (viewId !== changedViewId) {
-			const view = uuidViews[viewId];
-			view.unparse(view.inputs, view.constants || {});
+			callUUIDViewEvent(uuidViews[viewId], 'unparse');
 		}
 	}
 }
@@ -118,17 +130,27 @@ function loadUUIDFromHash() {
 	updateUUIDViews('hex');
 }
 
+const clipboardText = document.getElementById('copy-area');
+function copyUUIDViewToClipboard(viewId) {
+	const view = uuidViews[viewId];
+	if (view) {
+		clipboardText.value = callUUIDViewEvent(view, 'getText');
+		clipboardText.select();
+		document.execCommand('copy');
+	}
+}
+
 document.getElementById('gen-random').addEventListener('click', generateRandomUUID);
 
 document.addEventListener('input', e => {
-	const viewId = e.target.closest('.view').dataset.viewId;
+	const viewId = findElementUUIDViewId(e.target);
 	if (viewId) {
 		updateUUIDViews(viewId);
 	}
 });
 
 document.addEventListener('paste', e => {
-	const viewId = e.target.closest('.view').dataset.viewId;
+	const viewId = findElementUUIDViewId(e.target);
 	const view = uuidViews[viewId];
 	if (!view || !view.allowSplitPaste) return;
 	
@@ -145,6 +167,12 @@ document.addEventListener('paste', e => {
 			});
 			break;
 		}
+	}
+});
+
+document.addEventListener('click', e => {
+	if (e.target.classList.contains('copy-me')) {
+		copyUUIDViewToClipboard(findElementUUIDViewId(e.target));
 	}
 });
 
