@@ -32,10 +32,9 @@ const uuidViews = {
 			}
 			hex.value = groups.join('-');
 		},
-		getText: ([hex]) => `"${hex.value}"`,
+		getData: ([hex]) => `"${hex.value.trim()}"`,
 	},
 	halves: {
-		allowSplitPaste: true,
 		inputs: [
 			document.getElementById('most'),
 			document.getElementById('least'),
@@ -52,10 +51,9 @@ const uuidViews = {
 			most.value = uuid.getBigInt64(0, false);
 			least.value = uuid.getBigInt64(8, false);
 		},
-		getText: ([most, least]) => `Most:${most.value}L,Least:${least.value}L`,
+		getData: ([most, least]) => `Most:${most.value.trim()}L,Least:${least.value.trim()}L`,
 	},
 	array: {
-		allowSplitPaste: true,
 		inputs: Array.from({ length: 4 },
 			(_, i) => document.getElementById('array' + i)),
 		parse: array => {
@@ -70,7 +68,7 @@ const uuidViews = {
 				array[i].value = uuid.getInt32(i * 4, false);
 			}
 		},
-		getText: array => `[I;${array.map(e => e.value).join(',')}]`,
+		getData: array => `[I;${array.map(e => e.value.trim()).join(',')}]`,
 	},
 };
 
@@ -131,13 +129,10 @@ function loadUUIDFromHash() {
 }
 
 const clipboardText = document.getElementById('copy-area');
-function copyUUIDViewToClipboard(viewId) {
-	const view = uuidViews[viewId];
-	if (view) {
-		clipboardText.value = callUUIDViewEvent(view, 'getText');
-		clipboardText.select();
-		document.execCommand('copy');
-	}
+function copyTextToClipboard(text) {
+	clipboardText.value = text;
+	clipboardText.select();
+	document.execCommand('copy');
 }
 
 document.getElementById('gen-random').addEventListener('click', generateRandomUUID);
@@ -152,7 +147,7 @@ document.addEventListener('input', e => {
 document.addEventListener('paste', e => {
 	const viewId = findElementUUIDViewId(e.target);
 	const view = uuidViews[viewId];
-	if (!view || !view.allowSplitPaste) return;
+	if (!view || view.inputs.length <= 1) return;
 	
 	for (const item of e.clipboardData.items) {
 		if (item.kind === 'string' && item.type.startsWith('text/plain')) {
@@ -171,8 +166,13 @@ document.addEventListener('paste', e => {
 });
 
 document.addEventListener('click', e => {
-	if (e.target.classList.contains('copy-me')) {
-		copyUUIDViewToClipboard(findElementUUIDViewId(e.target));
+	const view = uuidViews[findElementUUIDViewId(e.target)];
+	if (e.target.classList.contains('copy-data')) {
+		copyTextToClipboard(callUUIDViewEvent(view, 'getData'));
+	} else if (e.target.classList.contains('copy-link')) {
+		const url = new URL(window.location);
+		url.hash = view.inputs.map(e => e.value.trim()).join(',');
+		copyTextToClipboard(url);
 	}
 });
 

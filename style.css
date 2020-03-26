@@ -62,20 +62,36 @@ h2 {
 	align-items: stretch;
 }
 
-.row.view .copy-me {
+.action-buttons {
 	display: inline-block;
 	position: absolute;
-	right: 5px;
+	right: 3px;
 	top: -20px;
 	height: 20px;
 	width: auto;
-	padding: 2px 5px;
+	padding: 2px 4px;
 	font: 13px monospace;
+	font-style: italic;
+	opacity: 0.9;
+}
+
+@media screen and (any-hover) {
+	.action-buttons {
+		opacity: 0.75;
+	}
+
+	.action-buttons:hover {
+		opacity: 1;
+	}
+}
+
+.action-buttons a {
+	padding: 0 2px;
 	transition: box-shadow 1s;
 	box-shadow: 0 0 10px rgba(0, 0, 255, 0);
 }
 
-.row.view .copy-me:active {
+.action-buttons a:active {
 	transition: none;
 	box-shadow: 0 0 0px rgba(0, 0, 255, 255);
 }
@@ -131,7 +147,7 @@ input:invalid {
 		height: unset;
 	}
 
-	.row.view.column-mobile .copy-me {
+	.row.view.column-mobile .action-buttons {
 		top: 5px;
 	}
 	
