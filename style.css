@@ -50,6 +50,7 @@ h2 {
 	margin: 10px;
 	margin-top: 15px;
 	height: 25px;
+	line-height: 25px;
 }
 
 .row.buttons {
@@ -101,11 +102,14 @@ h2 {
 	align-items: stretch;
 	flex-grow: 1;
 	padding-left: 10px;
-	line-height: 25px;
 }
 
 .row.view label:first-of-type {
 	padding-left: 0;
+}
+
+.row.view strong {
+	white-space: pre;
 }
 
 .row.view .expandable {
@@ -116,6 +120,7 @@ h2 {
 .row.view input {
 	flex-grow: 1;
 	text-align: right;
+	text-align: end;
 	width: 0;
 	height: 100%;
 }
@@ -145,10 +150,25 @@ input:invalid {
 	.row.view {
 		flex-flow: column;
 		height: unset;
+		line-height: 30px;
+	}
+
+	.row.view label, .row.view input {
+		font-size: 18px;
+	}
+
+	.row.view input {
+		height: 30px;
+		line-height: 30px;
 	}
 
 	.row.view.column-mobile .action-buttons {
-		top: 5px;
+		top: 10px;
+	}
+
+	.row.view.column-mobile strong {
+		padding-right: 30%;
+		white-space: normal;
 	}
 	
 	.row.view label {
@@ -162,12 +182,38 @@ input:invalid {
 	.row.view .space-at-end-mobile::after {
 		content: "\00a0";
 	}
-	
-	.row.view input {
-		height: 25px;
-	}
 
 	.info code {
 		display: inline;
+	}
+}
+
+@media (max-width: 430px) {
+	.row.view.column-mobile strong {
+		padding-right: unset;
+		text-align: left;
+		text-align: start;
+	}
+
+	.row.view .expandable input {
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 365px) {
+	.row.view .expandable input {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 345px) {
+	.row.view .expandable input {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 330px) {
+	.row.view .expandable input {
+		font-size: 12px;
 	}
 }

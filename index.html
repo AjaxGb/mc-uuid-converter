@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 		<title>Minecraft UUID Converter</title>
-		<link rel="stylesheet" href="style.css?v=5">
+		<link rel="stylesheet" href="style.css?v=6">
 		<script defer src="convert.js?v=6"></script>
 		<script>
 			if (!('setBigUint64' in DataView.prototype)) {
@@ -25,13 +25,15 @@
 					<a href='javascript:;'class="copy-link">Link</a>
 					<a href='javascript:;'class="copy-data">Data</a>
 				</div>
-				<label>Hexadecimal:<span class="expandable">"
-					<input id="hex"
-						value="00000000-0000-0000-0000-000000000000"
-						placeholder="00000000-0000-0000-0000-000000000000"
-						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*([0-9a-fA-F]{1,8}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,12}|[0-9a-fA-F]{1,32})\s*">"
-				</label></span>
+				<label><strong>Hexadecimal: </strong>
+					<span class="expandable">"
+						<input id="hex"
+							value="00000000-0000-0000-0000-000000000000"
+							placeholder="00000000-0000-0000-0000-000000000000"
+							autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+							required pattern="\s*([0-9a-fA-F]{1,8}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,4}-[0-9a-fA-F]{1,12}|[0-9a-fA-F]{1,32})\s*">"
+					</span>
+				</label>
 			</div>
 			<div class="row view" data-view-id="halves">
 				<div class="action-buttons">
@@ -39,13 +41,13 @@
 					<a href='javascript:;'class="copy-link">Link</a>
 					<a href='javascript:;'class="copy-data">Data</a>
 				</div>
-				<label>UUIDMost:
+				<label><strong>UUIDMost: </strong>
 					<input id="most"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						required pattern="\s*[-+]?\d+\s*">L,
 				</label>
-				<label class="space-at-end-mobile">UUIDLeast:
+				<label class="space-at-end-mobile"><strong>UUIDLeast: </strong>
 					<input id="least"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -58,7 +60,7 @@
 					<a href='javascript:;'class="copy-link">Link</a>
 					<a href='javascript:;'class="copy-data">Data</a>
 				</div>
-				<label>UUID:[I;
+				<label><strong>UUID: </strong>[I;
 					<input id="array0"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
