@@ -130,9 +130,12 @@ function loadUUIDFromHash() {
 
 const clipboardText = document.getElementById('copy-area');
 function copyTextToClipboard(text) {
+	const focusedElement = document.activeElement;
 	clipboardText.value = text;
+	clipboardText.focus({ preventScroll: true });
 	clipboardText.select();
 	document.execCommand('copy');
+	focusedElement.focus();
 }
 
 document.getElementById('gen-random').addEventListener('click', generateRandomUUID);
