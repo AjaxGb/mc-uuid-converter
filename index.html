@@ -4,10 +4,10 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 		<title>Minecraft UUID Converter</title>
-		<link rel="stylesheet" href="style.css?v=6">
-		<script defer src="convert.js?v=7"></script>
+		<link rel="stylesheet" href="style.css?v=7">
+		<script defer src="convert.js?v=8"></script>
 		<script>
-			if (!('setBigUint64' in DataView.prototype)) {
+			if (typeof DataView !== 'function' || !('setBigUint64' in DataView.prototype)) {
 				alert('This browser does not support writing and reading 64-bit integers, which is required by the converter. Try updating your browser.')
 			}
 		</script>
@@ -84,6 +84,15 @@
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						required pattern="\s*[-+]?\d+\s*">
 						]
+				</label>
+			</div>
+			<div class="row view" data-view-id="player">
+				<label>
+					<canvas id="player-face" class="player-face" width="8" height="8"></canvas>
+					<strong> Player Name: </strong>
+					"<input id="player-name" class="start-align"
+						placeholder="----"
+						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">"
 				</label>
 			</div>
 			<div class="info">

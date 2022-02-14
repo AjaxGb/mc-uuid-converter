@@ -1,6 +1,42 @@
 const uuidBytes = new Uint8Array(16);
 const uuid = new DataView(uuidBytes.buffer);
 
+class PlayerFetcher {
+	constructor(canvas) {
+		this.canvas = canvas;
+		this.ctx = canvas.getContext('2d');
+
+		this.timeout = null;
+		this.abortController = new AbortController();
+
+		this.state = 'none';
+	}
+
+	cancel() {
+		if (playerRequestDelay !== null) {
+			clearTimeout(playerRequestDelay);
+			playerRequestDelay = null;
+		}
+		playerRequestAC.abort('interrupted');
+		playerFace.clearRect(0, 0, 8, 8);
+	}
+
+	requestByName(name) {
+		fetch('https://api.ashcon.app/mojang/v2/user/' + encodeURIComponent(playerName.value));
+	}
+
+	get state() {
+		return this._state;
+	}
+
+	set state(value) {
+		switch (value) {
+			case 'none':
+
+		}
+	}
+}
+
 const uuidViews = {
 	hex: {
 		inputs: [
@@ -70,6 +106,25 @@ const uuidViews = {
 		},
 		getData: array => `[I;${array.map(e => e.value.trim()).join(',')}]`,
 	},
+	player: {
+		inputs: [
+			document.getElementById('player-name'),
+		],
+		constants: {
+			fetcher: new PlayerFetcher(document.getElementById('player-face')),
+		},
+		parse: ([playerName], {fetcher}, isFinal) => {
+			fetcher.cancel();
+			if (isFinal) {
+				fetcher.requestByName(playerName.value, ({uuid, username}) => {
+					// TODO
+				});
+			}
+		},
+		unparse: ([playerName], {playerFace}) => {
+			console.log('unparse', playerName.value);
+		},
+	}
 };
 
 function findElementUUIDViewId(el) {
@@ -78,14 +133,14 @@ function findElementUUIDViewId(el) {
 	return '';
 }
 
-function callUUIDViewEvent(view, event) {
-	return view[event](view.inputs, view.constants || {});
+function callUUIDViewEvent(view, event, ...args) {
+	return view[event](view.inputs, view.constants || {}, ...args);
 }
 
-function updateUUIDViews(changedViewId) {
+function updateUUIDViews(changedViewId, isFinal) {
 	const changedView = uuidViews[changedViewId];
 	if (changedView) {
-		callUUIDViewEvent(changedView, 'parse');
+		callUUIDViewEvent(changedView, 'parse', isFinal);
 	}
 	for (const viewId in uuidViews) {
 		if (viewId !== changedViewId) {
@@ -119,13 +174,13 @@ function loadUUIDFromHash() {
 			for (let i = 0; i < textGroups.length; i++) {
 				view.inputs[i].value = textGroups[i];
 			}
-			updateUUIDViews(viewId);
+			updateUUIDViews(viewId, true);
 			return;
 		}
 	}
 	// No matching length, fall back to hex
 	uuidViews.hex.inputs[0].value = text;
-	updateUUIDViews('hex');
+	updateUUIDViews('hex', true);
 }
 
 const clipboardText = document.getElementById('copy-area');
@@ -143,7 +198,14 @@ document.getElementById('gen-random').addEventListener('click', generateRandomUU
 document.addEventListener('input', e => {
 	const viewId = findElementUUIDViewId(e.target);
 	if (viewId) {
-		updateUUIDViews(viewId);
+		updateUUIDViews(viewId, false);
+	}
+});
+
+document.addEventListener('change', e => {
+	const viewId = findElementUUIDViewId(e.target);
+	if (viewId) {
+		updateUUIDViews(viewId, true);
 	}
 });
 

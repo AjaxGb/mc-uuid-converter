@@ -125,8 +125,21 @@ h2 {
 	height: 100%;
 }
 
+.row.view input.start-align {
+	text-align: left;
+	text-align: start;
+}
+
 input:invalid {
 	background-color: #ff000030;
+}
+
+.player-face {
+	width: 32px;
+	height: 32px;
+	line-height: 30px;
+	margin-top: -5px;
+    image-rendering: pixelated;
 }
 
 .info {
@@ -181,6 +194,10 @@ input:invalid {
 
 	.row.view .space-at-end-mobile::after {
 		content: "\00a0";
+	}
+
+	.player-face {
+		margin-top: -2px;
 	}
 
 	.info code {
