@@ -11,10 +11,7 @@ class PlayerNameInput extends EventTarget {
 			this.loadPlayer(this.input.value.trim(), true, true);
 		});
 		this.input.addEventListener('change', () => {
-			const loadedName = this.playerData ? this.playerData.username : '';
-			if (this.input.value !== loadedName) {
-				this.loadPlayer(this.input.value.trim(), false, true);
-			}
+			this.loadPlayer(this.input.value.trim(), false, true);
 		});
 		
 		this.canvas = canvas;
@@ -27,6 +24,7 @@ class PlayerNameInput extends EventTarget {
 		this.requestDelay = null;
 		this.abortController = null;
 		
+		this.loadedNameOrUuid = null;
 		this.playerData = null;
 	}
 
@@ -41,36 +39,47 @@ class PlayerNameInput extends EventTarget {
 		}
 	}
 	
-	clear() {
+	clear(clearInput=true) {
+		this.loadedNameOrUuid = null;
 		this.playerData = null;
-		this.input.value = '';
+		if (clearInput) {
+			this.input.value = '';
+		}
 		this.input.setCustomValidity('');
 		this.input.checkValidity();
 		this.clearFace();
 	}
 	
 	loadPlayer(nameOrUuid, useTimeout, isInternalLoad=false) {
+		const alreadyLoaded = [this.loadedNameOrUuid];
+		if (this.playerData) {
+			alreadyLoaded.push(this.playerData.username);
+			alreadyLoaded.push(this.playerData.uuid);
+		}
+		if (alreadyLoaded.indexOf(nameOrUuid) >= 0) {
+			return;
+		}
 		this.cancel();
 		if (useTimeout) {
 			this.requestDelay = setTimeout(
 				() => this.loadPlayer(nameOrUuid, false, isInternalLoad),
 				1000);
-		} else if (nameOrUuid) {
-			this.playerData = null;
-			this.clearFace();
-			this.abortController = new AbortController();
-			this.makeRequest(nameOrUuid, this.abortController.signal, isInternalLoad);
 		} else {
-			this.clear();
+			this.clear(!isInternalLoad);
+			if (nameOrUuid) {
+				this.abortController = new AbortController();
+				this.makeRequest(nameOrUuid, this.abortController.signal, isInternalLoad);
+			}
 		}
 	}
 	
-	reportError(message, checkErrors) {
+	reportError(message, nameOrUuid, checkErrors) {
 		if (checkErrors) {
 			this.input.setCustomValidity(message);
 			this.input.checkValidity();
 			this.dispatchEvent(new Event('error'));
 		}
+		this.loadedNameOrUuid = nameOrUuid;
 		this.playerData = null;
 		this.clearFace();
 	}
@@ -87,7 +96,8 @@ class PlayerNameInput extends EventTarget {
 			});
 			if (response.status === 404) {
 				console.error('No player found for: ', nameOrUuid);
-				return this.reportError('No such player', isInternalLoad);
+				return this.reportError(
+					'No such player', nameOrUuid, isInternalLoad);
 			}
 			const data = await response.json();
 			
@@ -96,9 +106,11 @@ class PlayerNameInput extends EventTarget {
 			
 			if (!data.uuid || !data.username) {
 				console.error('Loading player data failed: ', data);
-				return this.reportError('Failed to get data', isInternalLoad);
+				return this.reportError(
+					'Failed to get data', nameOrUuid, isInternalLoad);
 			}
 			
+			this.loadedNameOrUuid = nameOrUuid;
 			this.playerData = data;
 			if (this.input.value !== data.username) {
 				this.input.value = data.username;
@@ -110,7 +122,8 @@ class PlayerNameInput extends EventTarget {
 		} catch (err) {
 			if (err.name === 'AbortError') return;
 			console.error('Loading player data failed: ', err);
-			return this.reportError('Failed to get data', isInternalLoad);
+			return this.reportError(
+				'Failed to get data', nameOrUuid, isInternalLoad);
 		} finally {
 			this.spinner.classList.remove('loading');
 		}
@@ -225,7 +238,6 @@ const uuidViews = {
 			}
 		},
 		unparse: ([playerName], isFinal) => {
-			playerName.clear();
 			playerName.loadPlayer(unparseUUID(uuid), !isFinal);
 		},
 	}
