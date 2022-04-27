@@ -136,7 +136,9 @@ class PlayerNameInput extends EventTarget {
 	}
 	
 	clearFace() {
-		this.texture.src = 'data:,';
+		if (this.texture.src !== 'data:,') {
+			this.texture.src = 'data:,';
+		}
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 }
