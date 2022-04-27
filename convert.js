@@ -59,6 +59,10 @@ class PlayerNameInput extends EventTarget {
 		if (alreadyLoaded.indexOf(nameOrUuid) >= 0) {
 			return;
 		}
+		if (!isInternalLoad) {
+			this.input.value = '';
+			this.clearFace();
+		}
 		this.cancel();
 		if (useTimeout) {
 			this.requestDelay = setTimeout(
