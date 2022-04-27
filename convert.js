@@ -1,40 +1,166 @@
 const uuidBytes = new Uint8Array(16);
 const uuid = new DataView(uuidBytes.buffer);
 
-class PlayerFetcher {
-	constructor(canvas) {
+class PlayerNameInput extends EventTarget {
+	constructor(input, canvas, spinner) {
+		super();
+		this.input = input;
+		this.input.addEventListener('input', () => {
+			this.input.setCustomValidity('');
+			this.input.checkValidity();
+			this.loadPlayer(this.input.value.trim(), true, true);
+		});
+		this.input.addEventListener('change', () => {
+			const loadedName = this.playerData ? this.playerData.username : '';
+			if (this.input.value !== loadedName) {
+				this.loadPlayer(this.input.value.trim(), false, true);
+			}
+		});
+		
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d');
+		this.texture = new Image();
+		this.texture.onload = () => this.drawFace();
+		this.texture.onerror = () => this.clearFace();
 
-		this.timeout = null;
-		this.abortController = new AbortController();
-
-		this.state = 'none';
+		this.spinner = spinner;
+		this.requestDelay = null;
+		this.abortController = null;
+		
+		this.playerData = null;
 	}
 
 	cancel() {
-		if (playerRequestDelay !== null) {
-			clearTimeout(playerRequestDelay);
-			playerRequestDelay = null;
+		if (this.requestDelay !== null) {
+			clearTimeout(this.requestDelay);
+			this.requestDelay = null;
 		}
-		playerRequestAC.abort('interrupted');
-		playerFace.clearRect(0, 0, 8, 8);
-	}
-
-	requestByName(name) {
-		fetch('https://api.ashcon.app/mojang/v2/user/' + encodeURIComponent(playerName.value));
-	}
-
-	get state() {
-		return this._state;
-	}
-
-	set state(value) {
-		switch (value) {
-			case 'none':
-
+		if (this.abortController) {
+			this.abortController.abort('interrupted');
+			this.abortController = null;
 		}
 	}
+	
+	clear() {
+		this.playerData = null;
+		this.input.value = '';
+		this.input.setCustomValidity('');
+		this.input.checkValidity();
+		this.clearFace();
+	}
+	
+	loadPlayer(nameOrUuid, useTimeout, isInternalLoad=false) {
+		this.cancel();
+		if (useTimeout) {
+			this.requestDelay = setTimeout(
+				() => this.loadPlayer(nameOrUuid, false, isInternalLoad),
+				1000);
+		} else if (nameOrUuid) {
+			this.playerData = null;
+			this.clearFace();
+			this.abortController = new AbortController();
+			this.makeRequest(nameOrUuid, this.abortController.signal, isInternalLoad);
+		} else {
+			this.clear();
+		}
+	}
+	
+	reportError(message, checkErrors) {
+		if (checkErrors) {
+			this.input.setCustomValidity(message);
+			this.input.checkValidity();
+			this.dispatchEvent(new Event('error'));
+		}
+		this.playerData = null;
+		this.clearFace();
+	}
+	
+	async makeRequest(nameOrUuid, signal, isInternalLoad) {
+		try {
+			const url = 'https://api.ashcon.app/mojang/v2/user/' + encodeURIComponent(nameOrUuid);;
+			console.log('Requesting ', url);
+			this.spinner.classList.add('loading');
+			
+			const response = await fetch(url, {
+				mode: 'cors',
+				signal: signal,
+			});
+			if (response.status === 404) {
+				console.error('No player found for: ', nameOrUuid);
+				return this.reportError('No such player', isInternalLoad);
+			}
+			const data = await response.json();
+			
+			if (signal.aborted) return;
+			this.abortController = null;
+			
+			if (!data.uuid || !data.username) {
+				console.error('Loading player data failed: ', data);
+				return this.reportError('Failed to get data', isInternalLoad);
+			}
+			
+			this.playerData = data;
+			if (this.input.value !== data.username) {
+				this.input.value = data.username;
+			}
+			if (data.textures && data.textures.skin) {
+				this.texture.src = 'data:image/png;base64,' + data.textures.skin.data;
+			}
+			this.dispatchEvent(new Event('load'));
+		} catch (err) {
+			if (err.name === 'AbortError') return;
+			console.error('Loading player data failed: ', err);
+			return this.reportError('Failed to get data', isInternalLoad);
+		} finally {
+			this.spinner.classList.remove('loading');
+		}
+	}
+	
+	drawFace() {
+		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.drawImage(this.texture, 8, 8, 8, 8, 0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.drawImage(this.texture, 40, 8, 8, 8, 0, 0, this.canvas.width, this.canvas.height);
+	}
+	
+	clearFace() {
+		this.texture.src = 'data:,';
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+}
+
+const playerNameInput = new PlayerNameInput(
+	document.getElementById('player-name'),
+	document.getElementById('player-face'),
+	document.getElementById('player-spinner'),
+);
+
+const UUID_GROUP_SIZES = [8, 4, 4, 4, 12];
+
+function parseUUID(hex, intoView) {
+	hex = hex.trim();
+	if (hex.includes('-')) {
+		hex = hex
+			.split('-')
+			.map((g, i) => g.padStart(UUID_GROUP_SIZES[i], '0'))
+			.join('');
+	} else {
+		hex = hex.padStart(32, '0');
+	}
+	intoView.setBigUint64(0, BigInt('0x' + hex.substring(0, 16)), false);
+	intoView.setBigUint64(8, BigInt('0x' + hex.substring(16)), false);
+}
+
+function unparseUUID(view) {
+	const hex = (
+		view.getBigUint64(0, false).toString(16).padStart(16, '0') +
+		view.getBigUint64(8, false).toString(16).padStart(16, '0'));
+	const groups = [];
+	let groupStart = 0;
+	for (const groupSize of UUID_GROUP_SIZES) {
+		groups.push(hex.substring(groupStart, groupStart + groupSize));
+		groupStart += groupSize;
+	}
+	return groups.join('-');
 }
 
 const uuidViews = {
@@ -42,31 +168,12 @@ const uuidViews = {
 		inputs: [
 			document.getElementById('hex')
 		],
-		constants: {
-			groupSizes: [8, 4, 4, 4, 12],
-		},
-		parse: ([hex], {groupSizes}) => {
+		parse: ([hex]) => {
 			if (!hex.validity.valid) return;
-			const hexText =  hex.value.includes('-')
-				? hex.value.trim()
-					.split('-')
-					.map((g, i) => g.padStart(groupSizes[i], '0'))
-					.join('')
-				: hex.value.trim().padStart(32, '0');
-			uuid.setBigUint64(0, BigInt('0x' + hexText.substring(0, 16)), false);
-			uuid.setBigUint64(8, BigInt('0x' + hexText.substring(16)), false);
+			parseUUID(hex.value, uuid);
 		},
-		unparse: ([hex], {groupSizes}) => {
-			const hexText =
-				uuid.getBigUint64(0, false).toString(16).padStart(16, '0') +
-				uuid.getBigUint64(8, false).toString(16).padStart(16, '0');
-			const groups = [];
-			let groupStart = 0;
-			for (const groupSize of groupSizes) {
-				groups.push(hexText.substring(groupStart, groupStart + groupSize));
-				groupStart += groupSize;
-			}
-			hex.value = groups.join('-');
+		unparse: ([hex]) => {
+			hex.value = unparseUUID(uuid);
 		},
 		getData: ([hex]) => `"${hex.value.trim()}"`,
 	},
@@ -108,21 +215,18 @@ const uuidViews = {
 	},
 	player: {
 		inputs: [
-			document.getElementById('player-name'),
+			playerNameInput,
 		],
-		constants: {
-			fetcher: new PlayerFetcher(document.getElementById('player-face')),
-		},
-		parse: ([playerName], {fetcher}, isFinal) => {
-			fetcher.cancel();
-			if (isFinal) {
-				fetcher.requestByName(playerName.value, ({uuid, username}) => {
-					// TODO
-				});
+		parse: ([playerName]) => {
+			if (playerName.playerData) {
+				parseUUID(playerName.playerData.uuid, uuid);
+			} else {
+				uuidBytes.fill(0);
 			}
 		},
-		unparse: ([playerName], {playerFace}) => {
-			console.log('unparse', playerName.value);
+		unparse: ([playerName], isFinal) => {
+			playerName.clear();
+			playerName.loadPlayer(unparseUUID(uuid), !isFinal);
 		},
 	}
 };
@@ -134,7 +238,7 @@ function findElementUUIDViewId(el) {
 }
 
 function callUUIDViewEvent(view, event, ...args) {
-	return view[event](view.inputs, view.constants || {}, ...args);
+	return view[event](view.inputs, ...args);
 }
 
 function updateUUIDViews(changedViewId, isFinal) {
@@ -144,7 +248,7 @@ function updateUUIDViews(changedViewId, isFinal) {
 	}
 	for (const viewId in uuidViews) {
 		if (viewId !== changedViewId) {
-			callUUIDViewEvent(uuidViews[viewId], 'unparse');
+			callUUIDViewEvent(uuidViews[viewId], 'unparse', isFinal);
 		}
 	}
 }
@@ -155,7 +259,7 @@ function generateRandomUUID() {
 	uuidBytes[6] = (uuidBytes[6] & 0x0f) | (4 << 4);
 	// Set variant to 1 (Leach–Salz)
 	uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80;
-	updateUUIDViews();
+	updateUUIDViews(null, true);
 }
 
 function loadUUIDFromHash() {
@@ -208,6 +312,9 @@ document.addEventListener('change', e => {
 		updateUUIDViews(viewId, true);
 	}
 });
+
+playerNameInput.addEventListener('load', () => updateUUIDViews('player', true));
+playerNameInput.addEventListener('error', () => updateUUIDViews('player', true));
 
 document.addEventListener('paste', e => {
 	const viewId = findElementUUIDViewId(e.target);
