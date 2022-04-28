@@ -39,15 +39,15 @@ class PlayerNameInput extends EventTarget {
 		}
 	}
 	
-	clear(clearInput=true) {
-		this.loadedNameOrUuid = null;
-		this.playerData = null;
-		if (clearInput) {
-			this.input.value = '';
-		}
+	clearInput() {
+		this.input.value = '';
 		this.input.setCustomValidity('');
 		this.input.checkValidity();
-		this.clearFace();
+	}
+	
+	clearData() {
+		this.loadedNameOrUuid = null;
+		this.playerData = null;
 	}
 	
 	loadPlayer(nameOrUuid, useTimeout, isInternalLoad=false) {
@@ -60,7 +60,7 @@ class PlayerNameInput extends EventTarget {
 			return;
 		}
 		if (!isInternalLoad) {
-			this.input.value = '';
+			this.clearInput();
 			this.clearFace();
 		}
 		this.cancel();
@@ -69,7 +69,8 @@ class PlayerNameInput extends EventTarget {
 				() => this.loadPlayer(nameOrUuid, false, isInternalLoad),
 				1000);
 		} else {
-			this.clear(!isInternalLoad);
+			this.clearData();
+			this.clearFace();
 			if (nameOrUuid) {
 				this.abortController = new AbortController();
 				this.makeRequest(nameOrUuid, this.abortController.signal, isInternalLoad);
