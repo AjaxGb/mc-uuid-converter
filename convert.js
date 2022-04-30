@@ -52,10 +52,6 @@ class PlayerNameInput extends EventTarget {
 	
 	loadPlayer(nameOrUuid, useTimeout, isInternalLoad=false) {
 		this.cancel();
-		if (!isInternalLoad) {
-			this.clearInput();
-			this.clearFace();
-		}
 		const alreadyLoaded = [this.loadedNameOrUuid];
 		if (this.playerData) {
 			alreadyLoaded.push(this.playerData.username);
@@ -63,6 +59,10 @@ class PlayerNameInput extends EventTarget {
 		}
 		if (alreadyLoaded.indexOf(nameOrUuid) >= 0) {
 			return;
+		}
+		if (!isInternalLoad) {
+			this.clearInput();
+			this.clearFace();
 		}
 		if (useTimeout) {
 			this.requestDelay = setTimeout(
