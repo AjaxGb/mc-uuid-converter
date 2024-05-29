@@ -8,7 +8,7 @@
 		<script defer src="convert.js?v=11"></script>
 		<script>
 			if (typeof DataView !== 'function' || !('setBigUint64' in DataView.prototype)) {
-				alert('This browser does not support writing and reading 64-bit integers, which is required by the converter. Try updating your browser.')
+				alert('This browser does not support writing and reading 64-bit integers, which is required by the converter. Please update your browser.')
 			}
 		</script>
 	</head>
@@ -45,13 +45,13 @@
 					<input id="most"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">L,
+						required pattern="\s*[\-+]?\d+\s*">L,
 				</label>
 				<label class="space-at-end-mobile"><strong>UUIDLeast: </strong>
 					<input id="least"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">L
+						required pattern="\s*[\-+]?\d+\s*">L
 				</label>
 			</div>
 			<div class="row view" data-view-id="array">
@@ -64,25 +64,25 @@
 					<input id="array0"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">,
+						required pattern="\s*[\-+]?\d+\s*">,
 				</label>
 				<label>
 					<input id="array1"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">,
+						required pattern="\s*[\-+]?\d+\s*">,
 				</label>
 				<label>
 					<input id="array2"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">,
+						required pattern="\s*[\-+]?\d+\s*">,
 				</label>
 				<label>
 					<input id="array3"
 						value="0" inputmode="numeric"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						required pattern="\s*[-+]?\d+\s*">
+						required pattern="\s*[\-+]?\d+\s*">
 						]
 				</label>
 			</div>
