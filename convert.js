@@ -2,7 +2,7 @@ const uuidBytes = new Uint8Array(16);
 const uuid = new DataView(uuidBytes.buffer);
 
 class PlayerNameInput extends EventTarget {
-	constructor(input, canvas, spinner) {
+	constructor(input, faceImg, spinner) {
 		super();
 		this.input = input;
 		this.input.addEventListener('input', () => {
@@ -13,17 +13,16 @@ class PlayerNameInput extends EventTarget {
 		this.input.addEventListener('change', () => {
 			this.loadPlayer(this.input.value.trim(), false, true);
 		});
-		
-		this.canvas = canvas;
-		this.ctx = canvas.getContext('2d');
-		this.texture = new Image();
-		this.texture.onload = () => this.drawFace();
-		this.texture.onerror = () => this.clearFace();
+
+		this.faceImg = faceImg;
+		this.faceImg.onload = () => this.faceLoadDone(true);
+		this.faceImg.onerror = () => this.faceLoadDone(false);
+		this.waitingForFace = false;
 
 		this.spinner = spinner;
 		this.requestDelay = null;
 		this.abortController = null;
-		
+
 		this.loadedNameOrUuid = null;
 		this.playerData = null;
 	}
@@ -38,18 +37,18 @@ class PlayerNameInput extends EventTarget {
 			this.abortController = null;
 		}
 	}
-	
+
 	clearInput() {
 		this.input.value = '';
 		this.input.setCustomValidity('');
 		this.input.checkValidity();
 	}
-	
+
 	clearData() {
 		this.loadedNameOrUuid = null;
 		this.playerData = null;
 	}
-	
+
 	loadPlayer(nameOrUuid, useTimeout, isInternalLoad=false) {
 		this.cancel();
 		const alreadyLoaded = [this.loadedNameOrUuid];
@@ -77,7 +76,7 @@ class PlayerNameInput extends EventTarget {
 			}
 		}
 	}
-	
+
 	reportError(message, nameOrUuid, checkErrors) {
 		if (checkErrors) {
 			this.input.setCustomValidity(message);
@@ -88,13 +87,13 @@ class PlayerNameInput extends EventTarget {
 		this.playerData = null;
 		this.clearFace();
 	}
-	
+
 	async makeRequest(nameOrUuid, signal, isInternalLoad) {
 		try {
 			const url = 'https://playerdb.co/api/player/minecraft/' + encodeURIComponent(nameOrUuid);;
 			console.log('Requesting ', url);
 			this.spinner.classList.add('loading');
-			
+
 			const response = await fetch(url, {
 				mode: 'cors',
 				signal: signal,
@@ -105,16 +104,16 @@ class PlayerNameInput extends EventTarget {
 					'No such player', nameOrUuid, isInternalLoad);
 			}
 			const json = await response.json();
-			
+
 			if (signal.aborted) return;
 			this.abortController = null;
-			
+
 			if (!json.data || !json.data.player || !json.data.player.username || !json.data.player.id) {
 				console.error('Loading player data failed: ', json);
 				return this.reportError(
 					'Failed to get data', nameOrUuid, isInternalLoad);
 			}
-			
+
 			this.loadedNameOrUuid = nameOrUuid;
 			this.playerData = {
 				username: String(json.data.player.username),
@@ -123,8 +122,11 @@ class PlayerNameInput extends EventTarget {
 			if (this.input.value !== this.playerData.username) {
 				this.input.value = this.playerData.username;
 			}
-			if (json.data.player.skin_texture) {
-				this.texture.src = json.data.player.skin_texture;
+			if (json.data.player.avatar) {
+				this.faceImg.src = json.data.player.avatar;
+				this.waitingForFace = true;
+			} else {
+				this.clearFace();
 			}
 			this.dispatchEvent(new Event('load'));
 		} catch (err) {
@@ -133,21 +135,22 @@ class PlayerNameInput extends EventTarget {
 			return this.reportError(
 				'Failed to get data', nameOrUuid, isInternalLoad);
 		} finally {
+			if (!this.waitingForFace) {
+				this.spinner.classList.remove('loading');
+			}
+		}
+	}
+
+	faceLoadDone(wasSuccessful) {
+		if (this.waitingForFace) {
+			this.waitingForFace = false;
 			this.spinner.classList.remove('loading');
 		}
 	}
-	
-	drawFace() {
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.drawImage(this.texture, 8, 8, 8, 8, 0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.drawImage(this.texture, 40, 8, 8, 8, 0, 0, this.canvas.width, this.canvas.height);
-	}
-	
+
 	clearFace() {
-		if (this.texture.src !== 'data:,') {
-			this.texture.src = 'data:,';
-		}
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.faceImg.src = 'blank.png';
+		this.waitingForFace = false;
 	}
 }
 
@@ -287,7 +290,7 @@ function generateRandomUUID() {
 function loadUUIDFromHash() {
 	const text = location.hash.substring(1);
 	if (!text) return;
-	
+
 	if (/rand/i.test(text)) {
 		generateRandomUUID();
 		return;
@@ -342,7 +345,7 @@ document.addEventListener('paste', e => {
 	const viewId = findElementUUIDViewId(e.target);
 	const view = uuidViews[viewId];
 	if (!view || view.inputs.length <= 1) return;
-	
+
 	for (const item of e.clipboardData.items) {
 		if (item.kind === 'string' && item.type.startsWith('text/plain')) {
 			item.getAsString(text => {
