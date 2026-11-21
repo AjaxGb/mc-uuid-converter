@@ -91,7 +91,7 @@ class PlayerNameInput extends EventTarget {
 	
 	async makeRequest(nameOrUuid, signal, isInternalLoad) {
 		try {
-			const url = 'https://api.ashcon.app/mojang/v2/user/' + encodeURIComponent(nameOrUuid);;
+			const url = 'https://playerdb.co/api/player/minecraft/' + encodeURIComponent(nameOrUuid);;
 			console.log('Requesting ', url);
 			this.spinner.classList.add('loading');
 			
@@ -99,29 +99,35 @@ class PlayerNameInput extends EventTarget {
 				mode: 'cors',
 				signal: signal,
 			});
-			if (response.status === 404) {
+			if (!response.ok) {
 				console.error('No player found for: ', nameOrUuid);
 				return this.reportError(
 					'No such player', nameOrUuid, isInternalLoad);
 			}
-			const data = await response.json();
+			const json = await response.json();
 			
 			if (signal.aborted) return;
 			this.abortController = null;
 			
-			if (!data.uuid || !data.username) {
-				console.error('Loading player data failed: ', data);
+			if (!json.data || !json.data.player || !json.data.player.username || !json.data.player.id) {
+				console.error('Loading player data failed: ', json);
 				return this.reportError(
 					'Failed to get data', nameOrUuid, isInternalLoad);
 			}
 			
 			this.loadedNameOrUuid = nameOrUuid;
-			this.playerData = data;
-			if (this.input.value !== data.username) {
-				this.input.value = data.username;
+			this.playerData = {
+				username: String(json.data.player.username),
+				uuid: String(json.data.player.id),
+			};
+			if (this.input.value !== this.playerData.username) {
+				this.input.value = this.playerData.username;
 			}
-			if (data.textures && data.textures.skin) {
-				this.texture.src = 'data:image/png;base64,' + data.textures.skin.data;
+			if (Array.isArray(json.data.player.properties)) {
+				const textures = json.data.player.properties.find(p => p.name === 'textures');
+				if (textures && textures.value) {
+					this.texture.src = 'data:image/png;base64,' + textures.value;
+				}
 			}
 			this.dispatchEvent(new Event('load'));
 		} catch (err) {
