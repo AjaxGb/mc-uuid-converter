@@ -123,11 +123,8 @@ class PlayerNameInput extends EventTarget {
 			if (this.input.value !== this.playerData.username) {
 				this.input.value = this.playerData.username;
 			}
-			if (Array.isArray(json.data.player.properties)) {
-				const textures = json.data.player.properties.find(p => p.name === 'textures');
-				if (textures && textures.value) {
-					this.texture.src = 'data:image/png;base64,' + textures.value;
-				}
+			if (json.data.player.skin_texture) {
+				this.texture.src = json.data.player.skin_texture;
 			}
 			this.dispatchEvent(new Event('load'));
 		} catch (err) {
